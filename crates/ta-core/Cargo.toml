@@ -1,0 +1,33 @@
+[package]
+name = "ta-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Core types and traits for the rust-ta technical analysis library"
+keywords = ["trading", "technical-analysis", "finance", "core"]
+categories = ["finance", "mathematics"]
+
+[lints]
+workspace = true
+
+[features]
+default = ["std", "serde"]
+std = ["alloc", "num-traits/std", "indexmap/std"]
+alloc = []
+serde = ["dep:serde", "dep:serde_json", "indexmap/serde"]
+
+[dependencies]
+num-traits = { workspace = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+indexmap = { workspace = true }
+thiserror = { workspace = true }
+libm = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+approx = { workspace = true }
+serde_json = { workspace = true }

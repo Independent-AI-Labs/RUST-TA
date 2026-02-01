@@ -1,0 +1,60 @@
+# Rust build artifacts
+/target/
+**/target/
+
+# Cargo lock for library (keep for binary crates)
+# Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Maturin
+*.pyd
+wheels/
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.proptest-regressions/
+
+# Benchmark results
+criterion/
+
+# Documentation build
+docs/_build/
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
+*.bak

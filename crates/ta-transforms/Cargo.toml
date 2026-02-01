@@ -1,0 +1,29 @@
+[package]
+name = "ta-transforms"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Data transforms for the rust-ta library"
+
+[lints]
+workspace = true
+
+[features]
+default = ["std", "serde"]
+std = ["ta-core/std", "ta-indicators/std", "alloc"]
+alloc = ["ta-core/alloc"]
+serde = ["dep:serde", "ta-core/serde", "ta-indicators/serde"]
+
+[dependencies]
+ta-core = { path = "../ta-core" }
+ta-indicators = { path = "../ta-indicators" }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+approx = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }

@@ -1,0 +1,30 @@
+[package]
+name = "ta-indicators"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Technical indicators for the rust-ta library"
+
+[lints]
+workspace = true
+
+[features]
+default = ["std", "serde"]
+std = ["ta-core/std", "alloc"]
+alloc = ["ta-core/alloc"]
+simd = ["ta-simd"]
+serde = ["dep:serde", "ta-core/serde"]
+
+[dependencies]
+ta-core = { path = "../ta-core" }
+ta-simd = { path = "../ta-simd", optional = true }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+approx = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }

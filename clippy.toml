@@ -1,0 +1,38 @@
+# Clippy configuration
+# https://doc.rust-lang.org/clippy/
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 15
+
+# Maximum number of lines per function
+too-many-lines-threshold = 100
+
+# Maximum number of arguments per function
+too-many-arguments-threshold = 7
+
+# Type complexity threshold
+type-complexity-threshold = 250
+
+# Enum variant name prefix/suffix length
+enum-variant-name-threshold = 3
+
+# Maximum nesting depth
+excessive-nesting-threshold = 4
+
+# Documentation settings
+doc-valid-idents = ["NaN", "RSI", "EMA", "SMA", "MACD", "ATR", "OBV", "VWAP", "OHLCV", "IEEE", "SIMD", "PyO3", "API"]
+
+# Allow certain patterns
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+
+# Disallowed types (use these instead)
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "Use IndexMap for deterministic iteration order" },
+]
+
+# Disallowed methods
+disallowed-methods = [
+    { path = "f64::partial_cmp", reason = "Use f64::total_cmp for deterministic NaN handling" },
+    { path = "f32::partial_cmp", reason = "Use f32::total_cmp for deterministic NaN handling" },
+]

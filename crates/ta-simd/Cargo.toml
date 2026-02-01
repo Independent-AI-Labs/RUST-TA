@@ -1,0 +1,24 @@
+[package]
+name = "ta-simd"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "SIMD-optimized primitives for the rust-ta library"
+
+[lints]
+workspace = true
+
+[features]
+default = ["std"]
+std = []
+wide = ["dep:wide"]
+
+[dependencies]
+ta-core = { path = "../ta-core" }
+wide = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion = { workspace = true }

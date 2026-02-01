@@ -1,0 +1,27 @@
+[package]
+name = "ta-python"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Python bindings for the rust-ta library"
+
+[lib]
+name = "rust_ta"
+crate-type = ["cdylib"]
+
+[lints]
+workspace = true
+
+[features]
+default = []
+abi3 = ["pyo3/abi3-py39"]
+
+[dependencies]
+ta-core = { path = "../ta-core", features = ["serde"] }
+ta-indicators = { path = "../ta-indicators" }
+ta-transforms = { path = "../ta-transforms" }
+pyo3 = { workspace = true }
+numpy = { workspace = true }

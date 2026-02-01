@@ -1,0 +1,75 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/ta-core",
+    "crates/ta-indicators",
+    "crates/ta-transforms",
+    "crates/ta-simd",
+    "crates/ta-python",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.85"
+repository = "https://github.com/org/rust-ta"
+authors = ["AMI Engineering Team"]
+description = "High-performance technical analysis library for Rust"
+keywords = ["trading", "technical-analysis", "finance", "indicators"]
+categories = ["finance", "mathematics", "science"]
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"
+# Allow some pedantic lints that are too strict
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[workspace.lints.rustdoc]
+missing_crate_level_docs = "warn"
+
+[workspace.dependencies]
+# === Core Dependencies (Required) ===
+num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+indexmap = { version = "2.7", features = ["serde"] }
+
+# === Error Handling ===
+thiserror = "2.0"
+anyhow = "1.0"
+
+# === SIMD (Stable Rust) ===
+wide = "0.7"
+
+# === no_std Support ===
+libm = "0.2"
+
+# === Python Bindings ===
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py39"] }
+numpy = "0.23"
+
+# === Testing ===
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.5"
+approx = "0.5"
+
+# === Benchmarking ===
+[profile.bench]
+lto = true
+codegen-units = 1
+
+# === Release optimization ===
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
