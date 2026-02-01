@@ -227,6 +227,31 @@ def print_comparison_table(python_results: list[BenchmarkResult], rust_results: 
     print("=" * 100)
 
 
+INDICATOR_DESCRIPTIONS = {
+    "SMA(14)": "Simple moving average",
+    "SMA(50)": "Simple moving average",
+    "SMA(200)": "Simple moving average",
+    "EMA(14)": "Exponential moving average",
+    "EMA(50)": "Exponential moving average",
+    "WMA(14)": "Weighted moving average",
+    "MACD": "Moving average convergence/divergence",
+    "ADX(14)": "Average directional index (trend strength)",
+    "Aroon(25)": "Trend direction and strength",
+    "RSI(14)": "Relative strength index (momentum)",
+    "RSI(7)": "Relative strength index (momentum)",
+    "Stochastic": "Stochastic oscillator (%K, %D)",
+    "Williams %R": "Overbought/oversold oscillator",
+    "ROC(12)": "Rate of change (price momentum)",
+    "Bollinger": "Volatility bands around SMA",
+    "ATR(14)": "Average true range (volatility)",
+    "Keltner": "Volatility channel around EMA",
+    "Donchian": "High/low breakout channel",
+    "OBV": "On-balance volume (accumulation)",
+    "MFI(14)": "Volume-weighted RSI",
+    "CMF(20)": "Chaikin money flow",
+}
+
+
 def generate_markdown_table(python_results: list[BenchmarkResult], rust_results: list[BenchmarkResult],
                             metadata: dict) -> str:
     """Generate a markdown table for README."""
@@ -237,8 +262,8 @@ def generate_markdown_table(python_results: list[BenchmarkResult], rust_results:
     lines.append("")
     lines.append(f"Benchmarked on {metadata['candles']:,} candles ({metadata['iterations']} iterations)")
     lines.append("")
-    lines.append("| Indicator | python-ta | rust-ta | Speedup |")
-    lines.append("|-----------|-----------|---------|---------|")
+    lines.append("| Indicator | python-ta | rust-ta | Speedup | Description |")
+    lines.append("|-----------|-----------|---------|---------|-------------|")
 
     for pr in python_results:
         rr = rust_lookup.get(pr.name)
@@ -260,7 +285,8 @@ def generate_markdown_table(python_results: list[BenchmarkResult], rust_results:
             else:
                 rs_str = f"{rr.avg_time_ms*1000:.1f}μs"
 
-            lines.append(f"| {pr.name} | {py_str} | {rs_str} | **{speedup:.0f}x** |")
+            desc = INDICATOR_DESCRIPTIONS.get(pr.name, "")
+            lines.append(f"| {pr.name} | {py_str} | {rs_str} | **{speedup:.0f}x** | {desc} |")
 
     lines.append("")
 
