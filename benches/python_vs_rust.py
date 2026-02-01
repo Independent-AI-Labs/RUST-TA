@@ -240,17 +240,10 @@ def generate_markdown_table(python_results: list[BenchmarkResult], rust_results:
     lines.append("| Indicator | python-ta | rust-ta | Speedup |")
     lines.append("|-----------|-----------|---------|---------|")
 
-    total_python = 0
-    total_rust = 0
-    speedups = []
-
     for pr in python_results:
-        total_python += pr.avg_time_ms
         rr = rust_lookup.get(pr.name)
         if rr:
-            total_rust += rr.avg_time_ms
             speedup = pr.avg_time_ms / rr.avg_time_ms if rr.avg_time_ms > 0 else 0
-            speedups.append(speedup)
 
             # Format times nicely
             if pr.avg_time_ms >= 1000:
@@ -269,20 +262,6 @@ def generate_markdown_table(python_results: list[BenchmarkResult], rust_results:
 
             lines.append(f"| {pr.name} | {py_str} | {rs_str} | **{speedup:.0f}x** |")
 
-    # Summary row
-    avg_speedup = sum(speedups) / len(speedups) if speedups else 0
-
-    if total_python >= 1000:
-        py_total = f"{total_python/1000:.2f}s"
-    else:
-        py_total = f"{total_python:.2f}ms"
-
-    if total_rust >= 1000:
-        rs_total = f"{total_rust/1000:.2f}s"
-    else:
-        rs_total = f"{total_rust:.2f}ms"
-
-    lines.append(f"| **Total** | **{py_total}** | **{rs_total}** | **{avg_speedup:.0f}x avg** |")
     lines.append("")
 
     return "\n".join(lines)

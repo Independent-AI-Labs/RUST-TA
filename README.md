@@ -41,7 +41,6 @@ Benchmarked on 100,000 candles (5 iterations)
 | OBV | 702.3μs | 415.8μs | **2x** |
 | MFI(14) | 442.05ms | 1.10ms | **402x** |
 | CMF(20) | 1.73ms | 206.4μs | **8x** |
-| **Total** | **3.71s** | **17.90ms** | **207x** |
 
 ## 📦 Architecture
 
