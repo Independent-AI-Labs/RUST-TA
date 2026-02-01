@@ -8,6 +8,24 @@ members = [
     "crates/ta-python",
 ]
 
+[package]
+name = "rust-ta"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "High-performance technical analysis library benchmark suite"
+
+[[bin]]
+name = "rust_ta_bench"
+path = "src/bin/rust_ta_bench.rs"
+
+[dependencies]
+ta-core = { path = "crates/ta-core" }
+ta-indicators = { path = "crates/ta-indicators" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
