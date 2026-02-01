@@ -16,31 +16,31 @@ Designed for high-frequency trading (HFT), backtesting, and live data pipelines.
 
 ## Performance Benchmarks
 
-Benchmarked on 100,000 candles (5 iterations)
+Benchmarked on 100,000 candles (25 iterations)
 
 | Indicator | python-ta | rust-ta | Speedup | Description |
 |-----------|-----------|---------|---------|-------------|
-| SMA(14) | 737.0μs | 99.9μs | **7x** | Simple moving average |
-| SMA(50) | 626.6μs | 74.5μs | **8x** | Simple moving average |
-| SMA(200) | 632.3μs | 73.4μs | **9x** | Simple moving average |
-| EMA(14) | 498.8μs | 128.7μs | **4x** | Exponential moving average |
-| EMA(50) | 494.4μs | 129.7μs | **4x** | Exponential moving average |
-| WMA(14) | 2.61s | 228.7μs | **11432x** | Weighted moving average |
-| MACD | 1.94ms | 1.16ms | **2x** | Moving average convergence/divergence |
-| ADX(14) | 313.84ms | 1.50ms | **209x** | Average directional index (trend strength) |
-| Aroon(25) | 140.66ms | 3.94ms | **36x** | Trend direction and strength |
-| RSI(14) | 2.90ms | 859.0μs | **3x** | Relative strength index (momentum) |
-| RSI(7) | 2.59ms | 849.7μs | **3x** | Relative strength index (momentum) |
-| Stochastic | 3.35ms | 1.09ms | **3x** | Stochastic oscillator (%K, %D) |
-| Williams %R | 3.32ms | 725.4μs | **5x** | Overbought/oversold oscillator |
-| ROC(12) | 342.7μs | 80.7μs | **4x** | Rate of change (price momentum) |
-| Bollinger | 1.97ms | 1.69ms | **1x** | Volatility bands around SMA |
-| ATR(14) | 167.63ms | 540.8μs | **310x** | Average true range (volatility) |
-| Keltner | 2.66ms | 1.39ms | **2x** | Volatility channel around EMA |
-| Donchian | 2.91ms | 1.62ms | **2x** | High/low breakout channel |
-| OBV | 702.3μs | 415.8μs | **2x** | On-balance volume (accumulation) |
-| MFI(14) | 442.05ms | 1.10ms | **402x** | Volume-weighted RSI |
-| CMF(20) | 1.73ms | 206.4μs | **8x** | Chaikin money flow |
+| SMA(14) | 647.5μs | 82.9μs | **8x** | Simple moving average |
+| SMA(50) | 611.0μs | 80.6μs | **8x** | Simple moving average |
+| SMA(200) | 595.3μs | 77.8μs | **8x** | Simple moving average |
+| EMA(14) | 536.5μs | 137.8μs | **4x** | Exponential moving average |
+| EMA(50) | 525.5μs | 138.1μs | **4x** | Exponential moving average |
+| WMA(14) | 2.81s | 244.3μs | **11508x** | Weighted moving average |
+| MACD | 1.73ms | 1.32ms | **1x** | Moving average convergence/divergence |
+| ADX(14) | 341.09ms | 1.62ms | **211x** | Average directional index (trend strength) |
+| Aroon(25) | 147.45ms | 4.22ms | **35x** | Trend direction and strength |
+| RSI(14) | 2.52ms | 908.6μs | **3x** | Relative strength index (momentum) |
+| RSI(7) | 2.55ms | 913.4μs | **3x** | Relative strength index (momentum) |
+| Stochastic | 3.28ms | 1.14ms | **3x** | Stochastic oscillator (%K, %D) |
+| Williams %R | 3.28ms | 766.0μs | **4x** | Overbought/oversold oscillator |
+| ROC(12) | 313.0μs | 78.7μs | **4x** | Rate of change (price momentum) |
+| Bollinger | 2.25ms | 1.83ms | **1x** | Volatility bands around SMA |
+| ATR(14) | 183.09ms | 540.0μs | **339x** | Average true range (volatility) |
+| Keltner | 2.78ms | 1.48ms | **2x** | Volatility channel around EMA |
+| Donchian | 3.18ms | 1.73ms | **2x** | High/low breakout channel |
+| OBV | 726.0μs | 417.4μs | **2x** | On-balance volume (accumulation) |
+| MFI(14) | 479.04ms | 1.21ms | **394x** | Volume-weighted RSI |
+| CMF(20) | 1.70ms | 214.2μs | **8x** | Chaikin money flow |
 
 ## 📦 Architecture
 

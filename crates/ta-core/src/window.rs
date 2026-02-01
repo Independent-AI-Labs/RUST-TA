@@ -4,7 +4,10 @@
 //! for rolling window calculations in streaming indicators.
 
 #[cfg(feature = "alloc")]
-use alloc::vec::Vec;
+use alloc::{collections::VecDeque, vec::Vec};
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::VecDeque;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -49,6 +52,15 @@ pub struct RingBuffer<T: TaFloat> {
     capacity: usize,
     /// Running sum for O(1) mean calculation.
     sum: T,
+    /// Monotonic deque for O(1) max (stores absolute indices, decreasing values).
+    #[cfg_attr(feature = "serde", serde(skip))]
+    max_deque: VecDeque<usize>,
+    /// Monotonic deque for O(1) min (stores absolute indices, increasing values).
+    #[cfg_attr(feature = "serde", serde(skip))]
+    min_deque: VecDeque<usize>,
+    /// Absolute counter for tracking indices across wraps.
+    #[cfg_attr(feature = "serde", serde(skip))]
+    abs_index: usize,
 }
 
 impl<T: TaFloat> RingBuffer<T> {
@@ -66,6 +78,9 @@ impl<T: TaFloat> RingBuffer<T> {
             len: 0,
             capacity,
             sum: T::ZERO,
+            max_deque: VecDeque::with_capacity(capacity),
+            min_deque: VecDeque::with_capacity(capacity),
+            abs_index: 0,
         }
     }
 
@@ -74,6 +89,37 @@ impl<T: TaFloat> RingBuffer<T> {
     /// If the buffer is full, the oldest value is replaced.
     /// Returns the replaced value if the buffer was full, None otherwise.
     pub fn push(&mut self, value: T) -> Option<T> {
+        // Remove indices that are now outside the window
+        let oldest_valid_idx = if self.abs_index >= self.capacity {
+            self.abs_index - self.capacity + 1
+        } else {
+            0
+        };
+
+        // Pop front of deques if they reference expired indices
+        while self.max_deque.front().map_or(false, |&idx| idx < oldest_valid_idx) {
+            self.max_deque.pop_front();
+        }
+        while self.min_deque.front().map_or(false, |&idx| idx < oldest_valid_idx) {
+            self.min_deque.pop_front();
+        }
+
+        // Maintain monotonic decreasing property for max_deque
+        while self.max_deque.back().map_or(false, |&idx| {
+            let buf_idx = idx % self.capacity;
+            self.buffer[buf_idx] <= value
+        }) {
+            self.max_deque.pop_back();
+        }
+
+        // Maintain monotonic increasing property for min_deque
+        while self.min_deque.back().map_or(false, |&idx| {
+            let buf_idx = idx % self.capacity;
+            self.buffer[buf_idx] >= value
+        }) {
+            self.min_deque.pop_back();
+        }
+
         let old = if self.is_full() {
             let old_value = self.buffer[self.head];
             self.sum = self.sum - old_value + value;
@@ -85,7 +131,10 @@ impl<T: TaFloat> RingBuffer<T> {
         };
 
         self.buffer[self.head] = value;
+        self.max_deque.push_back(self.abs_index);
+        self.min_deque.push_back(self.abs_index);
         self.head = (self.head + 1) % self.capacity;
+        self.abs_index += 1;
         old
     }
 
@@ -204,38 +253,38 @@ impl<T: TaFloat> RingBuffer<T> {
         self.variance().sqrt()
     }
 
-    /// Find the minimum value in the buffer.
+    /// Find the minimum value in the buffer in O(1) time.
     #[must_use]
     pub fn min(&self) -> T {
         if self.is_empty() {
             return T::NAN;
         }
 
-        let mut min = T::INFINITY;
-        for i in 0..self.len {
-            let val = *self.get(i).unwrap();
-            if val < min {
-                min = val;
-            }
+        // The front of min_deque contains the index of the minimum value
+        if let Some(&idx) = self.min_deque.front() {
+            let buf_idx = idx % self.capacity;
+            self.buffer[buf_idx]
+        } else {
+            // Fallback (shouldn't happen if deques are maintained correctly)
+            T::NAN
         }
-        min
     }
 
-    /// Find the maximum value in the buffer.
+    /// Find the maximum value in the buffer in O(1) time.
     #[must_use]
     pub fn max(&self) -> T {
         if self.is_empty() {
             return T::NAN;
         }
 
-        let mut max = T::NEG_INFINITY;
-        for i in 0..self.len {
-            let val = *self.get(i).unwrap();
-            if val > max {
-                max = val;
-            }
+        // The front of max_deque contains the index of the maximum value
+        if let Some(&idx) = self.max_deque.front() {
+            let buf_idx = idx % self.capacity;
+            self.buffer[buf_idx]
+        } else {
+            // Fallback (shouldn't happen if deques are maintained correctly)
+            T::NAN
         }
-        max
     }
 
     /// Clear all values from the buffer.
@@ -243,6 +292,9 @@ impl<T: TaFloat> RingBuffer<T> {
         self.head = 0;
         self.len = 0;
         self.sum = T::ZERO;
+        self.max_deque.clear();
+        self.min_deque.clear();
+        self.abs_index = 0;
     }
 
     /// Returns an iterator over the values from oldest to newest.

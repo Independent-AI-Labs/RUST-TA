@@ -4,7 +4,10 @@
 //! moving averages, rolling statistics, and signal operations.
 
 #[cfg(feature = "alloc")]
-use alloc::vec::Vec;
+use alloc::{collections::VecDeque, vec::Vec};
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::VecDeque;
 
 use crate::num::TaFloat;
 use crate::series::Series;
@@ -251,6 +254,9 @@ pub fn rolling_std<T: TaFloat>(data: &[T], window: usize, ddof: usize) -> Series
 
 /// Compute rolling variance over a window.
 ///
+/// Uses O(n) sliding window algorithm tracking sum and sum of squares.
+/// Variance = (sum_sq - sum²/n) / (n - ddof)
+///
 /// # Arguments
 ///
 /// * `data` - Input data slice
@@ -262,7 +268,6 @@ pub fn rolling_variance<T: TaFloat>(data: &[T], window: usize, ddof: usize) -> S
         return Series::new();
     }
 
-    let means = sma(data, window);
     let mut result = Vec::with_capacity(data.len());
 
     // Fill with NaN until we have enough data
@@ -274,24 +279,41 @@ pub fn rolling_variance<T: TaFloat>(data: &[T], window: usize, ddof: usize) -> S
         return Series::from_vec(result);
     }
 
+    let n = TaFloat::from_usize(window);
     let divisor = TaFloat::from_usize(window - ddof);
 
-    for i in (window - 1)..data.len() {
-        let mean = means[i];
-        let mut sum_sq = T::ZERO;
+    // Initialize running sum and sum of squares for first window
+    let mut sum = T::ZERO;
+    let mut sum_sq = T::ZERO;
+    for i in 0..window {
+        sum = sum + data[i];
+        sum_sq = sum_sq + data[i] * data[i];
+    }
 
-        for j in (i + 1 - window)..=i {
-            let diff = data[j] - mean;
-            sum_sq = sum_sq + diff * diff;
-        }
+    // First variance: Var = (sum_sq - sum²/n) / divisor
+    let variance = (sum_sq - sum * sum / n) / divisor;
+    result.push(if variance < T::ZERO { T::ZERO } else { variance });
 
-        result.push(sum_sq / divisor);
+    // Slide window through remaining data
+    for i in window..data.len() {
+        let old_val = data[i - window];
+        let new_val = data[i];
+
+        // Update running sums
+        sum = sum - old_val + new_val;
+        sum_sq = sum_sq - old_val * old_val + new_val * new_val;
+
+        // Compute variance
+        let variance = (sum_sq - sum * sum / n) / divisor;
+        result.push(if variance < T::ZERO { T::ZERO } else { variance });
     }
 
     Series::from_vec(result)
 }
 
 /// Compute rolling maximum over a window.
+///
+/// Uses O(n) monotonic deque algorithm for efficient sliding window max.
 #[must_use]
 pub fn rolling_max<T: TaFloat>(data: &[T], window: usize) -> Series<T> {
     if data.is_empty() || window == 0 {
@@ -299,19 +321,27 @@ pub fn rolling_max<T: TaFloat>(data: &[T], window: usize) -> Series<T> {
     }
 
     let mut result = Vec::with_capacity(data.len());
+    // Monotonic decreasing deque storing indices
+    let mut deque: VecDeque<usize> = VecDeque::with_capacity(window);
 
     for i in 0..data.len() {
+        // Remove indices that are outside the current window
+        while deque.front().is_some_and(|&idx| i >= window && idx <= i - window) {
+            deque.pop_front();
+        }
+
+        // Maintain decreasing property: remove smaller elements from back
+        while deque.back().is_some_and(|&idx| data[idx] <= data[i]) {
+            deque.pop_back();
+        }
+
+        deque.push_back(i);
+
         if i + 1 < window {
             result.push(T::NAN);
         } else {
-            let start = i + 1 - window;
-            let mut max = data[start];
-            for j in (start + 1)..=i {
-                if data[j] > max {
-                    max = data[j];
-                }
-            }
-            result.push(max);
+            // Front of deque is always the maximum
+            result.push(data[deque[0]]);
         }
     }
 
@@ -319,6 +349,8 @@ pub fn rolling_max<T: TaFloat>(data: &[T], window: usize) -> Series<T> {
 }
 
 /// Compute rolling minimum over a window.
+///
+/// Uses O(n) monotonic deque algorithm for efficient sliding window min.
 #[must_use]
 pub fn rolling_min<T: TaFloat>(data: &[T], window: usize) -> Series<T> {
     if data.is_empty() || window == 0 {
@@ -326,19 +358,27 @@ pub fn rolling_min<T: TaFloat>(data: &[T], window: usize) -> Series<T> {
     }
 
     let mut result = Vec::with_capacity(data.len());
+    // Monotonic increasing deque storing indices
+    let mut deque: VecDeque<usize> = VecDeque::with_capacity(window);
 
     for i in 0..data.len() {
+        // Remove indices that are outside the current window
+        while deque.front().is_some_and(|&idx| i >= window && idx <= i - window) {
+            deque.pop_front();
+        }
+
+        // Maintain increasing property: remove larger elements from back
+        while deque.back().is_some_and(|&idx| data[idx] >= data[i]) {
+            deque.pop_back();
+        }
+
+        deque.push_back(i);
+
         if i + 1 < window {
             result.push(T::NAN);
         } else {
-            let start = i + 1 - window;
-            let mut min = data[start];
-            for j in (start + 1)..=i {
-                if data[j] < min {
-                    min = data[j];
-                }
-            }
-            result.push(min);
+            // Front of deque is always the minimum
+            result.push(data[deque[0]]);
         }
     }
 

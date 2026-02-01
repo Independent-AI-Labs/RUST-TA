@@ -268,8 +268,26 @@ impl<T: TaFloat> Indicator<T> for BollingerBands<T> {
         let mut pct_b = Series::with_capacity(len);
 
         let epsilon = <T as TaFloat>::from_f64_lossy(1e-10);
+        let n = <T as TaFloat>::from_usize(window);
+
+        // Running sum and sum of squares for O(n) sliding window
+        let mut sum = T::ZERO;
+        let mut sum_sq = T::ZERO;
 
         for i in 0..len {
+            let price = close[i];
+
+            // Add new value to running sums
+            sum = sum + price;
+            sum_sq = sum_sq + price * price;
+
+            // Remove oldest value when window is full
+            if i >= window {
+                let oldest = close[i - window];
+                sum = sum - oldest;
+                sum_sq = sum_sq - oldest * oldest;
+            }
+
             if i + 1 < window {
                 // Not enough data
                 if self.config.fillna {
@@ -286,17 +304,6 @@ impl<T: TaFloat> Indicator<T> for BollingerBands<T> {
                     pct_b.push(T::NAN);
                 }
             } else {
-                // Calculate SMA and StdDev for window
-                let start = i + 1 - window;
-                let mut sum = T::ZERO;
-                let mut sum_sq = T::ZERO;
-
-                for j in start..=i {
-                    sum = sum + close[j];
-                    sum_sq = sum_sq + close[j] * close[j];
-                }
-
-                let n = <T as TaFloat>::from_usize(window);
                 let mean = sum / n;
 
                 // Sample variance (ddof=1)
@@ -309,7 +316,6 @@ impl<T: TaFloat> Indicator<T> for BollingerBands<T> {
 
                 let u = mean + k * std_dev;
                 let l = mean - k * std_dev;
-                let price = close[i];
 
                 upper.push(u);
                 middle.push(mean);

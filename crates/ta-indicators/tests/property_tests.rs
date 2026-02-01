@@ -297,8 +297,14 @@ proptest! {
 
             if let Some(val) = streaming_result {
                 if !batch_result[i].is_nan() {
-                    let rel_diff = ((val - batch_result[i]) / batch_result[i]).abs();
-                    prop_assert!(rel_diff < 1e-8, "RSI streaming[{}] should equal batch: {} vs {}", i, val, batch_result[i]);
+                    // Use absolute diff if values are near zero, relative diff otherwise
+                    let abs_diff = (val - batch_result[i]).abs();
+                    let is_close = if batch_result[i].abs() < 1e-6 {
+                        abs_diff < 1e-6
+                    } else {
+                        abs_diff / batch_result[i].abs() < 1e-8
+                    };
+                    prop_assert!(is_close, "RSI streaming[{}] should equal batch: {} vs {}", i, val, batch_result[i]);
                 }
             }
         }
